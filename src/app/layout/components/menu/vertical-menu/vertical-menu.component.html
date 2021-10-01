@@ -1,0 +1,748 @@
+<!-- Menu header -->
+<div class="navbar-header">
+  <ul class="nav navbar-nav flex-row">
+    <li class="nav-item mr-auto">
+      <!-- App Branding -->
+      <a class="navbar-brand" [routerLink]="['/']">
+        <span class="brand-logo">
+          <img src="{{ coreConfig.app.appLogoImage }}" alt="brand-logo" />
+        </span>
+        <h2 class="brand-text mb-0">{{ coreConfig.app.appName }}</h2>
+      </a>
+    </li>
+    <!-- Menu Toggler đã xoá colapse-->
+  </ul>
+</div>
+<!--/ Menu header -->
+
+<!-- Navbar shadow -->
+<div class="shadow-bottom" [ngClass]="{ 'd-block': isScrolled }"></div>
+
+<!-- Main menu -->
+<!-- Chỗ này để chỉnh sửa menu sidebar -->
+<div class="">
+  <div class="qltt" [formGroup]="signForm">
+    <h2 class="ml-1">Quản lý tập tin</h2>
+    <div class="slidebar-left">
+      <div class="d-flex">
+        <div class="col-6">
+          <input
+            formControlName="documents"
+            #fileInput
+            type="file"
+            style="display: none"
+            accept="application/pdf"
+            (change)="handleFile($event.target)"
+            (change)="onFileInput($event)"
+          />
+          <button
+            type="button"
+            class="btn btn-primary btn-block btn-sm"
+            (click)="fileInput.click()"
+          >
+            Tải lên
+          </button>
+        </div>
+        <div class="col-6">
+          <button
+            type="button"
+            class="btn btn-primary btn-block btn-sm"
+            [disabled]="this.files === undefined || this.files.length === 0"
+          >
+            Tải Xuống
+          </button>
+        </div>
+      </div>
+      <br />
+      <div style="height: 230px; overflow-x: hidden">
+        <div class="d-flex">
+          <h5 class="col-6">Name</h5>
+          <h5 class="col-6">Actions</h5>
+        </div>
+        <ul class="list-group" *ngFor="let file of files; let i = index">
+          <li class="list-group-item" (click)="choosePdf(i)">
+            <a>{{ i + 1 }}. {{ file.name }}</a>
+            <button class="btn btn-primary btn-sm" (click)="removeFile(i)">
+              Xoá
+            </button>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <h2 class="ml-1">Quản lý chữ ký số</h2>
+        <div class="col-12">
+          <div class="col-xl-12 mb-lg-1 col-bill-to pl-0">
+            <!-- ng selected có input file -->
+            <div class="col-sml-12 form-group">
+              <ng-select
+                placeholder="Thêm/Chọn chứng thư số"
+                (change)="log()"
+              >
+                <ng-option *ngFor="let item of listCert; let i = index">{{
+                  item.name
+                }}</ng-option>
+                <ng-template ng-header-tmp>
+                  <button
+                    class="
+                      add-new-customer
+                      btn btn-flat-success
+                      cursor-pointer
+                      rounded-0
+                      text-left
+                      p-50
+                      w-100
+                    "
+                    (click)="fileInput2.click()"
+                  >
+                    <input
+                      formControlName="certificate"
+                      #fileInput2
+                      type="file"
+                      (change)="onCertInput($event)"
+                      style="display: none"
+                    />
+                    <i data-feather="plus"></i>
+                    <span class="align-middle ml-25">Tải lên chứng thư số</span>
+                  </button>
+                </ng-template>
+              </ng-select>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex">
+          <div class="col-6">
+            <button
+            type="button"
+            class="btn btn-primary btn-block btn-sm"
+            (click)="openKyso(modalBasic)"
+            rippleEffect
+            [disabled]="this.files === undefined || this.files.length === 0"
+          >
+            Ký số
+          </button>
+          </div>
+          <!-- <div class="col-6">
+            <button
+              type="button"
+              class="btn btn-primary btn-block btn-sm"
+              (click)="openKyso(modalBasic)"
+              rippleEffect
+              [disabled]="this.files === undefined || this.files.length === 0"
+            >
+              Ký số
+            </button>
+            <ng-template #modalBasic let-modal>
+              <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel1">Ký số</h4>
+                <button
+                  type="button"
+                  class="close"
+                  (click)="modal.dismiss('Cross click')"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body col-12" tabindex="0" ngbAutofocus>
+                <div
+                  id="users-list"
+                  class="chat-user-list-wrapper list-group"
+                  [perfectScrollbar]
+                ></div>
+                <div class="main">
+                  <h2>Danh sách tên tập tin cần ký</h2>
+                  <div style="height: 150px; overflow-x: hidden">
+                    <ul class="list-group">
+                      <li class="list-group-item">Example0.pdf</li>
+                      <li class="list-group-item">Example1.pdf</li>
+                      <li class="list-group-item">Example2.pdf</li>
+                      <li class="list-group-item">Example3.pdf</li>
+                      <li class="list-group-item">Example4.pdf</li>
+                      <li class="list-group-item">Example5.pdf</li>
+                      <li class="list-group-item">Example6.pdf</li>
+                      <li class="list-group-item">Example.7pdf</li>
+                    </ul>
+                  </div>
+                  <div class="">
+                    <h2>Thông tin chủ thể ký số</h2>
+                    <ng-select
+                      [(ngModel)]="selectedCert"
+                      placeholder="Chọn chủ thể ký số"
+                    >
+                      <ng-option *ngFor="let item of listCert">{{
+                        item.name
+                      }}</ng-option>
+                    </ng-select>
+                    <div class="col-12">
+                      <table class="col-8">
+                        <tr>
+                          <td><a>Thư điện tử :</a></td>
+                          <td>
+                            <a> tan.mac@gmail.com</a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><a>Ký bởi : </a></td>
+                          <td>
+                            <a> Mạc Duy Tân</a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><a>Tên đơn vị : </a></td>
+                          <td>
+                            <a> CMC</a>
+                          </td>
+                        </tr>
+                        <!-- <tr>
+                          <td><a>Tên nhóm : </a></td>
+                          <td>
+                            <a> Security</a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><a>Quốc Gia : </a></td>
+                          <td>
+                            <a> Việt Nam</a>
+                          </td>
+                        </tr> 
+                        <tr>
+                          <td><a>Tỉnh/Thành Phố : </a></td>
+                          <td>
+                            <a> Hà Nội</a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><a>Quận/Huyện : </a></td>
+                          <td>
+                            <a> Cầu Giấy</a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><a>Đường : </a></td>
+                          <td>
+                            <a> 11 Duy Tân</a>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="signature">
+                    <h2>Biểu diễn chữ ký số</h2>
+                    <div class="d-flex">
+                      <div class="col-4">
+                        <div class="custom-control custom-checkbox">
+                          <p>
+                            <input
+                              type="checkbox"
+                              class="custom-control-input"
+                              id="checkTitle"
+                              checked
+                            />
+                            <label class="custom-control-label" for="checkTitle"
+                              >Nhãn</label
+                            >
+                          </p>
+                        </div>
+                        <div class="custom-control custom-checkbox">
+                          <p>
+                            <input
+                              type="checkbox"
+                              class="custom-control-input"
+                              id="checkEmail"
+                              checked
+                            />
+                            <label class="custom-control-label" for="checkEmail"
+                              >Thư điện tử</label
+                            >
+                          </p>
+                        </div>
+                        <div class="custom-control custom-checkbox">
+                          <p>
+                            <input
+                              type="checkbox"
+                              class="custom-control-input"
+                              id="checkName"
+                              checked
+                            />
+                            <label class="custom-control-label" for="checkName"
+                              >Họ và tên</label
+                            >
+                          </p>
+                        </div>
+                        <div class="custom-control custom-checkbox">
+                          <p>
+                            <input
+                              type="checkbox"
+                              class="custom-control-input"
+                              id="checkOU"
+                              checked
+                            />
+                            <label class="custom-control-label" for="checkOU">
+                              Tên đơn vị</label
+                            >
+                          </p>
+                        </div>
+                        <div class="custom-control custom-checkbox">
+                          <p>
+                            <input
+                              type="checkbox"
+                              class="custom-control-input"
+                              id="checkTime"
+                              checked
+                            />
+                            <label class="custom-control-label" for="checkTime"
+                              >Thời gian ký</label
+                            >
+                          </p>
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <div class="demo-inline-spacing">
+                          <div class="custom-control custom-radio">
+                            <input
+                              type="radio"
+                              id="radioAnh"
+                              name="customRadio"
+                              class="custom-control-input"
+                            />
+                            <label class="custom-control-label" for="radioAnh"
+                              >Ảnh</label
+                            >
+                          </div>
+                          <div class="custom-control custom-radio">
+                            <input
+                              type="radio"
+                              id="radioAnhChu"
+                              name="customRadio"
+                              class="custom-control-input"
+                              checked
+                            />
+                            <label
+                              class="custom-control-label"
+                              for="radioAnhChu"
+                              >Ảnh/Chữ</label
+                            >
+                          </div>
+                          <div class="custom-control custom-radio">
+                            <input
+                              type="radio"
+                              id="radioChu"
+                              name="customRadio"
+                              class="custom-control-input"
+                            />
+                            <label class="custom-control-label" for="radioChu"
+                              >Chữ</label
+                            >
+                          </div>
+                        </div>
+                        <div class="">Chữ ký ở đây</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="">
+                    Mật khẩu chứng thư số <input type="text" />
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="modal.close('Accept click')"
+                  (click)="postSignRequest()"
+                  rippleEffect
+                >
+                  Ký
+                </button>
+              </div>
+            </ng-template>
+          </div> -->
+          <div class="col-6">
+            <button
+              type="button"
+              class="btn btn-primary btn-block btn-sm"
+              (click)="openCauhinh(modalCauhinh)"
+              [disabled]="this.files === undefined || this.files.length === 0"
+            >
+              Cấu hình
+            </button>
+            <ng-template #modalCauhinh let-modal>
+              <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel1">
+                  Cấu hình chữ ký số
+                </h4>
+                <button
+                  type="button"
+                  class="close"
+                  (click)="modal.dismiss('Cross click')"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div
+                class="modal-body col-11 ml-5"
+                id="myModalLabel1"
+                tabindex="0"
+                ngbAutofocus
+              >
+                <table>
+                  <h4>Dịch vụ kiểm tra trạng thái chứng thư số trực tuyến</h4>
+                  <tr>
+                    <th>
+                      <div class="custom-control custom-checkbox">
+                        <input
+                          type="checkbox"
+                          class="custom-control-input"
+                          id="customCheck1"
+                          checked
+                        />
+                        <label class="custom-control-label" for="customCheck1"
+                          >Sử dụng dịch vụ</label
+                        >
+                      </div>
+                    </th>
+                    <th>
+                      <div class="col-sml-12 form-group">
+                        <ng-select
+                          placeholder="Chọn đường dẫn dịch vụ"
+                          [disabled]="false"
+                        >
+                          <ng-option>wwww.google.com</ng-option>
+                          <ng-option>wwww.facebook.com</ng-option>
+                          <ng-option>wwww.amazon.com</ng-option>
+                        </ng-select>
+                      </div>
+                    </th>
+                  </tr>
+                  <h4>Dịch vụ cung cấp dấu thời gian</h4>
+                  <tr>
+                    <th>
+                      <div class="custom-control custom-checkbox">
+                        <input
+                          type="checkbox"
+                          class="custom-control-input"
+                          id="customCheck2"
+                          checked
+                        />
+                        <label class="custom-control-label" for="customCheck2"
+                          >Sử dụng dịch vụ</label
+                        >
+                      </div>
+                    </th>
+                    <th>
+                      <div class="col-sml-12 form-group">
+                        <ng-select placeholder="Chọn đường dẫn dịch vụ">
+                          <ng-option>wwww.google.com</ng-option>
+                          <ng-option>wwww.facebook.com</ng-option>
+                          <ng-option>wwww.amazon.com</ng-option>
+                        </ng-select>
+                      </div>
+                    </th>
+                  </tr>
+                </table>
+                <div class="so-luong">
+                  <h2>Số lượng tập tin trong một yêu cầu ký</h2>
+                  <div class="demo-inline-spacing">
+                    <div class="custom-control custom-radio">
+                      <input
+                        type="radio"
+                        id="customRadio1"
+                        name="customRadio"
+                        class="custom-control-input"
+                        checked
+                      />
+                      <label class="custom-control-label" for="customRadio1"
+                        >Ký Đơn</label
+                      >
+                    </div>
+                    <div class="custom-control custom-radio">
+                      <input
+                        type="radio"
+                        id="customRadio2"
+                        name="customRadio"
+                        class="custom-control-input"
+                      />
+                      <label class="custom-control-label" for="customRadio2"
+                        >Ký Lô</label
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="" formGoupName="display">
+                  <div class="">
+                    <h2>Vị trí vùng chứa chữ ký mặc định</h2>
+                    <div class="d-flex">
+                      <table class="">
+                        <tr>
+                          <th>Trang số</th>
+                          <th></th>
+                          <th>
+                            <input
+                              min="0"
+                              max="{{ totalPages }}"
+                              class="number-input"
+                              type="number"
+                            />{{ totalPages }}
+                          </th>
+                        </tr>
+                        <tr>
+                          <th>Toạ độ</th>
+                          <th>X</th>
+                          <th>
+                            <input
+                              min="0"
+                              max="240"
+                              class="number-input"
+                              type="number"
+                              (change)="changePositionX()"
+                            />/240
+                          </th>
+                        </tr>
+                        <tr>
+                          <th></th>
+                          <th>Y</th>
+                          <th>
+                            <input
+                              min="0"
+                              max="400"
+                              class="number-input"
+                              type="number"
+                              (change)="changePositionY()"
+                            />/400
+                          </th>
+                        </tr>
+                        <tr>
+                          <th>Kích thường</th>
+                          <th>Chiều dài</th>
+                          <th>
+                            <input
+                              min="0"
+                              max="400"
+                              class="number-input"
+                              type="number"
+                            />/200
+                          </th>
+                        </tr>
+                        <tr>
+                          <th></th>
+                          <th>Chiều rộng</th>
+                          <th>
+                            <input
+                              min="0"
+                              max="400"
+                              class="number-input"
+                              type="number"
+                            />/140
+                          </th>
+                        </tr>
+                      </table>
+                      <div class="example-boundary ml-4">
+                        <pdf-viewer
+                          [src]="pdfSrc"
+                          [original-size]="false"
+                          [show-all]="false"
+                          [page]="page"
+                          (after-load-complete)="afterLoadComplete($event)"
+                          style="height: 100%"
+                        ></pdf-viewer>
+                        <div
+                          [style.width.px]="width"
+                          [style.height.px]="height"
+                          class="example-box"
+                          cdkDragBoundary=".example-boundary"
+                          cdkDrag
+                          [cdkDragFreeDragPosition]="dragPosition"
+                          (cdkDragEnded)="onDragEnded($event)"
+                        >
+                          Chữ ký
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="">
+                    <h2>Mẫu chữ ký</h2>
+                    <div class="">
+                      <div class="d-flex">
+                        <div class="col-4">
+                          <div class="custom-control custom-checkbox">
+                            <p>
+                              <input
+                                type="checkbox"
+                                class="custom-control-input"
+                                id="checkTitle"
+                                checked
+                              />
+                              <label class="custom-control-label" for="checkTitle"
+                                >Nhãn</label
+                              >
+                            </p>
+                          </div>
+                          <div class="custom-control custom-checkbox">
+                            <p>
+                              <input
+                                type="checkbox"
+                                class="custom-control-input"
+                                id="checkEmail"
+                                checked
+                              />
+                              <label class="custom-control-label" for="checkEmail"
+                                >Thư điện tử</label
+                              >
+                            </p>
+                          </div>
+                          <div class="custom-control custom-checkbox">
+                            <p>
+                              <input
+                                type="checkbox"
+                                class="custom-control-input"
+                                id="checkName"
+                                checked
+                              />
+                              <label class="custom-control-label" for="checkName"
+                                >Họ và tên</label
+                              >
+                            </p>
+                          </div>
+                          <div class="custom-control custom-checkbox">
+                            <p>
+                              <input
+                                type="checkbox"
+                                class="custom-control-input"
+                                id="checkOU"
+                                checked
+                              />
+                              <label class="custom-control-label" for="checkOU">
+                                Tên đơn vị</label
+                              >
+                            </p>
+                          </div>
+                          <div class="custom-control custom-checkbox">
+                            <p>
+                              <input
+                                type="checkbox"
+                                class="custom-control-input"
+                                id="checkTime"
+                                checked
+                              />
+                              <label class="custom-control-label" for="checkTime"
+                                >Thời gian ký</label
+                              >
+                            </p>
+                          </div>
+                        </div>
+                        <div class="col-12">
+                          <div class="demo-inline-spacing">
+                            <div class="custom-control custom-radio">
+                              <input
+                                type="radio"
+                                id="radioAnh"
+                                value="Ảnh"
+                                name="option"
+                                class="custom-control-input"
+                              />
+                              <label class="custom-control-label" for="radioAnh"
+                                >Ảnh</label
+                              >
+                            </div>
+                            <div class="custom-control custom-radio">
+                              <input
+                                type="radio"
+                                id="radioAnhChu"
+                                name="option"
+                                value="Ảnh/Chữ"
+                                class="custom-control-input"
+                              />
+                              <label
+                                class="custom-control-label"
+                                for="radioAnhChu"
+                                >Ảnh/Chữ</label
+                              >
+                            </div>
+                            <div class="custom-control custom-radio">
+                              <input
+                                type="radio"
+                                id="radioChu"
+                                value="Chữ"
+                                name="option"
+                                class="custom-control-input"
+                              />
+                              <label class="custom-control-label" for="radioChu"
+                                >Chữ</label
+                              >
+                            </div>
+                          </div>
+                          <div class="" *ngIf="option === 'Ảnh'">Mẫu ảnh ký</div>
+                          <div class="" *ngIf="option === 'Ảnh/Chữ'">
+                            <img
+                              src="http://images1.cafef.vn/Images/Uploaded/DuLieuDownload/logodn/CMG_1.png"
+                              alt=""
+                            />
+                            Mẫu Ảnh chữ ký
+                            <div class="">Nhãn</div>
+                          </div>
+                          <div class="" *ngIf="option === 'Chữ'">Mẫu chữ ký</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="">
+                    Mật khẩu chứng thư số <input type="text" />
+                  </div>
+                </div>
+
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="modal.close('Accept click')"
+                  rippleEffect
+                >
+                  Accept
+                </button>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+        <br />
+        <h2 class="ml-1">Quản lý thuê bao</h2>
+        <div class="ml-1">
+          <div class="mr-1">
+            <button
+              type="button"
+              class="btn btn-primary btn-block"
+              rippleEffect
+            >
+              Tạo mới
+            </button>
+          </div>
+          <br />
+          <div class="mr-1">
+            <button
+              type="button"
+              class="btn btn-primary btn-block"
+              rippleEffect
+            >
+              Cập nhật
+            </button>
+          </div>
+          <br />
+          <div class="mr-1">
+            <button
+              type="button"
+              class="btn btn-primary btn-block"
+              rippleEffect
+            >
+              Tìm kiếm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- <div class="main-menu-content" [perfectScrollbar] (scroll)="onSidebarScroll()">
+  <ul class="navigation navigation-main" layout="vertical" core-menu></ul>
+</div> -->
+  <!--/ Main menu -->
+</div>
