@@ -48,6 +48,7 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
   dragPosition = { x: 0, y: 0 };
   x = 0;
   y = 0;
+  public test = "";
   selectedCert
   selectItem:any[]=[];
   selectCert:any[]=[]
@@ -93,8 +94,9 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
       phone: "+1 (904) 536-2020",
     },
   ];
+  documents:any[]=[]
   public selectBasicLoading = false;
-  // Private
+  // Privatedo
   private _unsubscribeAll: Subject<any>;
   [x: string]: any;
 
@@ -121,29 +123,6 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
   ) {
     // Set the private defaults
     this._unsubscribeAll = new Subject();
-
-    this.signForm = this.form.group({
-      documents: [{},Validators.required], 
-      //operationMode: ["A"],
-      certificate: this.form.control({}),
-      signedProps: this.form.array([""],Validators.required),
-      sad: ["",Validators.required],
-      config:this.form.group({
-        top: ["",Validators.required],
-        left: ["",Validators.required],
-        height: ["",Validators.required],
-        width: ["",Validators.required],
-        pageIndex: ["",Validators.required]
-      }),
-      display:this.form.group({
-        hasPhoto: ["",Validators.required],
-        hasLabel: ["",Validators.required],
-        hasCommonName: ["",Validators.required],
-        hasEmail: ["",Validators.required],
-        HasSigningTime: ["",Validators.required]
-      }),
-      photo:["",Validators.required],
-    })
     // this.top.valueChanges.subscribe(v => {
     //   console.log('In the component ' +  v);
     // });
@@ -151,7 +130,6 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
 
   @ViewChild(PerfectScrollbarDirective, { static: false })
   directiveRef?: PerfectScrollbarDirective;
-
   // Lifecycle Hooks
   // -----------------------------------------------------------------------------------------------------
 
@@ -159,7 +137,28 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
    * On Init
    */
   ngOnInit(): void {
-
+    this.signForm = this.form.group({
+      operationMode: ["A",Validators.required],
+      documents: [null,Validators.required], 
+      certificate: [null,Validators.required],
+      // signedProps: this.form.array([""],Validators.required),
+      // sad: ["",Validators.required],
+      // config:this.form.group({
+      //   top: ["",Validators.required],
+      //   left: ["",Validators.required],
+      //   height: ["",Validators.required],
+      //   width: ["",Validators.required],
+      //   pageIndex: ["",Validators.required]
+      // }),
+      // display:this.form.group({
+      //   hasPhoto: ["",Validators.required],
+      //   hasLabel: ["",Validators.required],
+      //   hasCommonName: ["",Validators.required],
+      //   hasEmail: ["",Validators.required],
+      //   HasSigningTime: ["",Validators.required]
+      // }),
+      // photo:["",Validators.required],
+    })
     // Subscribe config change
     this._coreConfigService.config
       .pipe(takeUntil(this._unsubscribeAll))
@@ -206,9 +205,6 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
     // this.getListSig();
     // this.getTemplate();
   }
-get top(): AbstractControl{
-  return this.signForm && this.signForm.get("top")
-}
   /**
    * On Destroy
    */
@@ -353,9 +349,11 @@ get top(): AbstractControl{
       reader.onload = (e: any) => {
         this.pdfSrc = e.target.result;
         this.localPDF = this.pdfSrc;
-        console.log(this.pdfSrc);
-        this.signForm.setValue({
-          'certificate':this.pdfSrc
+        this.test = this.localPDF
+        //this.localPDF = this.test;
+        console.log(this.test);
+        this.signForm.patchValue({
+          documents : this.test
         })
       };
       //reader.readAsArrayBuffer(this.files[0]);
@@ -405,7 +403,10 @@ get top(): AbstractControl{
     reader.readAsText(cert[0]);
     reader.onload = (e: any) => {
       const cert = e.target.result;
-      console.log(cert);
+      console.log(typeof(cert));
+      this.signForm.patchValue({
+        certificate : cert
+      })
       const certed = forge.pki.certificateFromPem(cert
         // "-----BEGIN CERTIFICATE-----\r\n" +
         //   cert.split(",")[1] +
@@ -455,12 +456,17 @@ get top(): AbstractControl{
     const token = currentUser.data.token;
     console.log("Token:",token);
   }
-  openKyso(modalBasic) {
-    this.modalService.open(modalBasic, {
-      scrollable: true,
-      centered: true,
-      size: "lg",
-    });
+  openKyso() {
+    //this.signForm.get('documents').value
+    console.log(this.signForm.get("certificate").value)
+    console.log(this.signForm.get("documents").value)
+    console.log(this.signForm)
+
+    // this.modalService.open(modalBasic, {
+    //   scrollable: true,
+    //   centered: true,
+    //   size: "lg",
+    // });
   }
   afterLoadComplete(pdfData: any) {
     this.totalPages = pdfData.numPages;
