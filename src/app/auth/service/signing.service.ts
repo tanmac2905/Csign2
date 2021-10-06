@@ -36,10 +36,11 @@ export class SigningService {
    * @returns data
 
    */
-  requestSigning(email: string, password: string) {
+
+  requestSigning(body) {
     const currentUser = JSON.parse(localStorage.getItem("currentUser")!);
     const token = currentUser.data.token;
-    console.log(token);
+    //console.log(token);
     const option = {
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +48,7 @@ export class SigningService {
       },
     };
     return this._http
-      .post<any>(`${environment.apiUrl}/api/SignatureCreationMessage/SendRequestSignature`, { email, password })
+      .post<any>(`${environment.apiUrl}/api/SignatureCreationMessage/SendRequestSignature`, body ,option)
       .pipe(
         map(data => {
           console.log(data)
@@ -55,25 +56,46 @@ export class SigningService {
           //if (user && user.token) {
             // store user details and jwt token in local storage to keep user logged in between page refreshes
             localStorage.setItem('data', JSON.stringify(data));
-
-            // Display welcome toast!
-            // setTimeout(() => {
-            //   this._toastrService.success(
-            //     'You have successfully logged in as an ' +
-            //       user.role +
-            //       ' user to Vuexy. Now you can start to explore. Enjoy! 🎉',
-            //     '👋 Welcome, ' + user.firstName + '!',
-            //     { toastClass: 'toast ngx-toastr', closeButton: true }
-            //   );
-            // }, 2500);
-            // notify
-            this.currentUserSubject.next(data);
-          //}
           return data;
         })
       );
-  }
 
+  }
+getData(){
+  const currentUser = JSON.parse(localStorage.getItem("currentUser")!);
+  const token = currentUser.data.token;
+  //console.log(token);
+  const option = {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+  };
+  const data= JSON.parse(localStorage.getItem('data'));
+  //console.log(data)
+  const requestId = data.data.requestId
+  console.log(requestId)
+  return this._http
+  .get<any>(`${environment.apiUrl}/api/PdfSigning/GetSignedDocument/${requestId}`,option)
+  .pipe(
+    map(res => {
+      console.log(res)
+      // login successful if there's a jwt token in the response
+      //if (user && user.token) {
+        // store user details and jwt token in local storage to keep user logged in between page refreshes
+      return res;
+    })
+  );
+  // (res => {
+  //     console.log(res)
+  //     // login successful if there's a jwt token in the response
+  //     //if (user && user.token) {
+  //       // store user details and jwt token in local storage to keep user logged in between page refreshes
+  //       // localStorage.setItem('data', JSON.stringify(data));
+  //     return data;
+  //   }
+  // );
+}
   /**
    * User logout
    *

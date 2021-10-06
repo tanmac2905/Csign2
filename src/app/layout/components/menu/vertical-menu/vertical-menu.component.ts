@@ -12,6 +12,7 @@ import { take, takeUntil, filter, throwIfEmpty } from "rxjs/operators";
 import { PerfectScrollbarDirective } from "ngx-perfect-scrollbar";
 import { FormBuilder, FormGroup, Validators, FormControl, AbstractControl } from '@angular/forms';
 
+import * as FileSaver from "file-saver";
 import { CoreConfigService } from "@core/services/config.service";
 import { CoreMenuService } from "@core/components/core-menu/core-menu.service";
 import { CoreSidebarService } from "@core/components/core-sidebar/core-sidebar.service";
@@ -22,7 +23,6 @@ import { SigningService } from "../../../../auth/service/signing.service";
 import * as forge from "node-forge";
 import { HttpClient } from "@angular/common/http";
 import { DomSanitizer } from "@angular/platform-browser";
-import { Certificate } from "crypto";
 
 @Component({
   selector: "vertical-menu",
@@ -41,8 +41,8 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
   checkedEmail: string = "1";
   checkedName: string = "1";
   checkedOrgUnit: string = "1";
-  checkedTime: string = "1";
-  checkedHeader: string = "1";
+  checkedTime: string="1"
+  checkedHeader: true;
   width: number = 120;
   height: number = 60;
   dragPosition = { x: 0, y: 0 };
@@ -54,7 +54,9 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
   selectCert:any[]=[]
   option="Ảnh/Chữ"
   listCert:string [] = [];
-  
+  listDocuments:any[] = [];
+  listPDF:any[] = [];
+  certInfor:any[]=[]
   public selectBasic = [
     {
       id: "5a15b13c36e7a7f00cf0d7cb",
@@ -139,25 +141,26 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.signForm = this.form.group({
       operationMode: ["A",Validators.required],
-      documents: [null,Validators.required], 
+      sad: ["44833",Validators.required],
+      photo:[null,Validators.required],
       certificate: [null,Validators.required],
-      // signedProps: this.form.array([""],Validators.required),
-      // sad: ["",Validators.required],
-      // config:this.form.group({
-      //   top: ["",Validators.required],
-      //   left: ["",Validators.required],
-      //   height: ["",Validators.required],
-      //   width: ["",Validators.required],
-      //   pageIndex: ["",Validators.required]
-      // }),
-      // display:this.form.group({
-      //   hasPhoto: ["",Validators.required],
-      //   hasLabel: ["",Validators.required],
-      //   hasCommonName: ["",Validators.required],
-      //   hasEmail: ["",Validators.required],
-      //   HasSigningTime: ["",Validators.required]
-      // }),
-      // photo:["",Validators.required],
+      signedProps: [null,Validators.required],
+      documents: [null,Validators.required], 
+      config: this.form.group({
+        top: [this.x,Validators.required],
+        left: [this.y,Validators.required],
+        height: [this.height,Validators.required],
+        width: [this.width,Validators.required],
+        pageIndex: [this.page,Validators.required],
+      }),
+      display: this.form.group({
+        hasPhoto: [true,Validators.required],
+        hasLabel: [true,Validators.required],
+        hasCommonName: [true,Validators.required],
+        hasEmail: [true,Validators.required],
+        hasOrganization: [true,Validators.required],
+        HasSigningTime: [true,Validators.required]
+      }),
     })
     // Subscribe config change
     this._coreConfigService.config
@@ -234,7 +237,6 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
   toggleSidebar(): void {
     this._coreSidebarService.getSidebarRegistry("menu").toggleOpen();
   }
-
   /**
    * Toggle sidebar collapsed status
    */
@@ -338,9 +340,19 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
   //     );})
   // }
   onFileInput(event) {
-    //console.log(event.target.files[0])
-    console.log(this.files);
+    //console.log(event.target.files[0].name)
+    this.pdfName = event.target.files[0].name
+    this.listPDF.push({
+      attributeName: "filename",
+      attributeValue: this.pdfName
+    });
+    //console.log(this.listPDF)
+    this.signForm.patchValue({
+      signedProps: this.listPDF
+    })
+    //console.log(this.files);
     this.loadPdfService.changedPdf(this.files);
+    console.log(this.files);
     this.loadPdfService.changedName("hung");
     // const pdfTatget: any = event.target;
     if (typeof FileReader !== "undefined") {
@@ -350,10 +362,13 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
         this.pdfSrc = e.target.result;
         this.localPDF = this.pdfSrc;
         this.test = this.localPDF
+        this.listDocuments.push(this.test.split(",")[1])
+        //console.log(this.listDocuments)
         //this.localPDF = this.test;
-        console.log(this.test);
+        //console.log(this.test.split(",")[1]);
+                //   cert.split(",")[1] +
         this.signForm.patchValue({
-          documents : this.test
+          documents : this.listDocuments
         })
       };
       //reader.readAsArrayBuffer(this.files[0]);
@@ -390,22 +405,24 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
       const foo_object = this.files[i];
       this.files = Array.from(this.files).filter((obj) => obj !== foo_object);
     }
-    console.log(this.files);
+    //console.log(this.files);
     this.loadPdfService.changedPdf(this.files);
   }
   onCertInput(e:any) {
     for (var i = 0; i < e.target.files.length; i++) { 
       this.listCert.push(e.target.files[i]);
     }
-    console.log(this.listCert);
+    //console.log(this.listCert);
     let cert = e.target.files
     const reader = new FileReader();
     reader.readAsText(cert[0]);
     reader.onload = (e: any) => {
       const cert = e.target.result;
-      console.log(typeof(cert));
+      console.log(cert);
+      console.log(cert.slice(29,-29));
+      console.log(cert.slice(29,-29).replaceAll("\n","").replaceAll("\r",""))
       this.signForm.patchValue({
-        certificate : cert
+        certificate : cert.slice(29,-29).replaceAll("\n","").replaceAll("\r","")
       })
       const certed = forge.pki.certificateFromPem(cert
         // "-----BEGIN CERTIFICATE-----\r\n" +
@@ -416,12 +433,24 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
         forge.util.decodeUtf8(JSON.stringify(certed.subject.attributes))
       );
       console.log(certificated);
+      let count = this.certInfor.length,
+      inc = ++count;
+      this.certInfor.push({
+      countryName: certificated[8].value,
+      provinceName: certificated[7].value,
+      localityName: certificated[6].value,
+      organizationName: certificated[5].value,
+      streetAddress: certificated[0].value,
+      emailAddress: certificated[2].value,
+      commonName: certificated[4].value,
+      telePhone: certificated[1].value
+    });
     };
   }
   onDragEnded(event: any): void {
     let position = event.source.getFreeDragPosition();
     console.log(position);
-    console.log(position.x, position.y);
+    //console.log(position.x, position.y);
     this.x = position.x;
     this.y = position.y;
   }
@@ -437,40 +466,98 @@ export class VerticalMenuComponent implements OnInit, OnDestroy {
       y: (this.dragPosition.y = this.y),
     };
   }
+  inputImage(event){
+    if (typeof FileReader !== "undefined") {
+      const reader = new FileReader();
+      reader.readAsDataURL(event.target.files[0])
+      reader.onload = (e: any) => {
+        this.image = e.target.result;
+        //console.log(this.image);
+        //console.log(this.image.split(",")[1])
+        this.signForm.patchValue({
+          photo : this.image.split(",")[1]
+        })
+      };
+    }        
+
+  }
   openCauhinh(modalCauhinh) {
     this.modalService.open(modalCauhinh, {
       scrollable: true,
       size: "lg",
     });
   }
-  log(){
-    console.log();
-  }
   postSignRequest(){
-    console.log(this.signForm.get("certificate").value)
-    console.log("Toạ độ", this.x, this.y);//toạ độ
-    console.log("PDF",this.pdfSrc);//pdf string
-    console.log("Chứng thư",this.cert);// cert string
     //this.singingService.requestSigning().subscribe;
     const currentUser = JSON.parse(localStorage.getItem("currentUser")!);
     const token = currentUser.data.token;
-    console.log("Token:",token);
+    //console.log("Token:",token);
+    const sigNing = JSON.stringify(this.signForm.value);
+    //console.log(sigNing);
+    this.singingService.requestSigning(sigNing).subscribe((res: any) => {
+      console.log(res)
+    });
   }
-  openKyso() {
-    //this.signForm.get('documents').value
-    console.log(this.signForm.get("certificate").value)
-    console.log(this.signForm.get("documents").value)
-    console.log(this.signForm)
-
-    // this.modalService.open(modalBasic, {
-    //   scrollable: true,
-    //   centered: true,
-    //   size: "lg",
+  openKyso(modalBasic) { 
+    console.log(this.signForm.value)
+    // const sigNing = JSON.stringify(this.signForm.value);
+    // console.log(sigNing);
+    // this.singingService.requestSigning(sigNing).subscribe((res: any) => {
+    //   console.log(res)
     // });
+        this.modalService.open(modalBasic, {
+      scrollable: true,
+      centered: true,
+      size: "lg",
+    });
   }
+  dataURItoBlob(dataURI) {
+    const byteString = window.atob(dataURI);
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const int8Array = new Uint8Array(arrayBuffer);
+    for (let i = 0; i < byteString.length; i++) {
+      int8Array[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([int8Array], { type: 'application/pdf' });    
+    return blob;
+ }
+  getData(i: number){
+    this.singingService.getData().subscribe((data:any) => {
+      console.log(data)
+      const pdfSigned = ("data:application/pdf," + data.data[0].data) 
+      // console.log(data.data[0].fileName)
+      // console.log(pdfSigned)
+      const base64 = data.data[0].data;
+const imageName = data.data[0].fileName;
+const imageBlob = this.dataURItoBlob(base64);
+const imageFile = new File([imageBlob], imageName, { type: 'application/pdf' });
+      // var blob = new Blob([pdfSigned], {type: "application/pdf"});
+      // this.file = new File([blob], data.data[0].fileName,{type: "application/pdf"});
+
+      FileSaver.saveAs(imageFile);
+
+      console.log(this.file)
+      console.log(this.files[0])
+      console.log(this.files)
+      //this.files.push(this.file)
+      this.files = Array.from(this.files).concat(imageFile);
+      console.log(this.files)
+      this.loadPdfService.changedPdf(this.files);
+      this.loadPdfService.chossePdf(this.files[i]);
+    })
+  }
+    //this.signForm.get('documents').value
+    // console.log(this.signForm.get("certificate").value)
+    // console.log(this.signForm.get("documents").value)
+    // //console.log(this.signForm.get("attributeValue").value)
+    // console.log(this.signForm.value)
+    // // this.modalService.open(modalBasic, {
+    // //   scrollable: true,
+    // //   centered: true,
+    // //   size: "lg",
+    // // });
   afterLoadComplete(pdfData: any) {
     this.totalPages = pdfData.numPages;
     this.isLoaded = true;
   }
-
 }

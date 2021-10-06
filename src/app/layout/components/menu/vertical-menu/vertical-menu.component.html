@@ -27,7 +27,6 @@
       <div class="d-flex">
         <div class="col-6">
           <input
-            formControlName="documents"
             #fileInput
             type="file"
             style="display: none"
@@ -74,10 +73,7 @@
           <div class="col-xl-12 mb-lg-1 col-bill-to pl-0">
             <!-- ng selected có input file -->
             <div class="col-sml-12 form-group">
-              <ng-select
-                placeholder="Thêm/Chọn chứng thư số"
-                (change)="log()"
-              >
+              <ng-select placeholder="Thêm/Chọn chứng thư số">
                 <ng-option *ngFor="let item of listCert; let i = index">{{
                   item.name
                 }}</ng-option>
@@ -95,7 +91,6 @@
                     (click)="fileInput2.click()"
                   >
                     <input
-                      formControlName="certificate"
                       #fileInput2
                       type="file"
                       (change)="onCertInput($event)"
@@ -112,22 +107,15 @@
         <div class="d-flex">
           <div class="col-6">
             <button
-            type="button"
-            class="btn btn-primary btn-block btn-sm"
-            (click)="openKyso()"
-            rippleEffect
-            [disabled]="this.files === undefined || this.files.length === 0"
-          >
-            Ký số
-          </button>
-          </div>
-          <!-- <div class="col-6">
-            <button
               type="button"
               class="btn btn-primary btn-block btn-sm"
               (click)="openKyso(modalBasic)"
               rippleEffect
-              [disabled]="this.files === undefined || this.files.length === 0"
+              [disabled]="
+                this.files === undefined ||
+                this.files.length === 0 ||
+                this.listCert.length === 0
+              "
             >
               Ký số
             </button>
@@ -152,75 +140,62 @@
                 <div class="main">
                   <h2>Danh sách tên tập tin cần ký</h2>
                   <div style="height: 150px; overflow-x: hidden">
-                    <ul class="list-group">
-                      <li class="list-group-item">Example0.pdf</li>
-                      <li class="list-group-item">Example1.pdf</li>
-                      <li class="list-group-item">Example2.pdf</li>
-                      <li class="list-group-item">Example3.pdf</li>
-                      <li class="list-group-item">Example4.pdf</li>
-                      <li class="list-group-item">Example5.pdf</li>
-                      <li class="list-group-item">Example6.pdf</li>
-                      <li class="list-group-item">Example.7pdf</li>
+                    <ul
+                      class="list-group"
+                      *ngFor="let file of files; let i = index"
+                    >
+                      <li class="list-group-item">{{ file.name }}</li>
                     </ul>
                   </div>
                   <div class="">
                     <h2>Thông tin chủ thể ký số</h2>
-                    <ng-select
-                      [(ngModel)]="selectedCert"
-                      placeholder="Chọn chủ thể ký số"
-                    >
+                    <!-- <ng-select placeholder="Chọn chủ thể ký số" >
                       <ng-option *ngFor="let item of listCert">{{
                         item.name
                       }}</ng-option>
-                    </ng-select>
+                    </ng-select> -->
                     <div class="col-12">
                       <table class="col-8">
                         <tr>
-                          <td><a>Thư điện tử :</a></td>
+                          <td>Thư điện tử :</td>
                           <td>
-                            <a> tan.mac@gmail.com</a>
+                            {{ certInfor[0].emailAddress }}
                           </td>
                         </tr>
                         <tr>
-                          <td><a>Ký bởi : </a></td>
+                          <td>Ký bởi :</td>
                           <td>
-                            <a> Mạc Duy Tân</a>
+                            {{ certInfor[0].commonName }}
                           </td>
                         </tr>
                         <tr>
-                          <td><a>Tên đơn vị : </a></td>
+                          <td>Tên đơn vị :</td>
                           <td>
-                            <a> CMC</a>
-                          </td>
-                        </tr>
-                        <!-- <tr>
-                          <td><a>Tên nhóm : </a></td>
-                          <td>
-                            <a> Security</a>
+                            {{ certInfor[0].organizationName }}
                           </td>
                         </tr>
                         <tr>
-                          <td><a>Quốc Gia : </a></td>
+                          <td>Quốc Gia :</td>
                           <td>
-                            <a> Việt Nam</a>
-                          </td>
-                        </tr> 
-                        <tr>
-                          <td><a>Tỉnh/Thành Phố : </a></td>
-                          <td>
-                            <a> Hà Nội</a>
+                            {{ certInfor[0].countryName }}
                           </td>
                         </tr>
                         <tr>
-                          <td><a>Quận/Huyện : </a></td>
+                          <td>Tỉnh/Thành Phố :</td>
                           <td>
-                            <a> Cầu Giấy</a>
+                            {{ certInfor[0].provinceName }}
                           </td>
                         </tr>
                         <tr>
-                          <td><a>Đường : </a></td>
+                          <td>Quận/Huyện :</td>
                           <td>
-                            <a> 11 Duy Tân</a>
+                            {{ certInfor[0].localityName }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Đường :</td>
+                          <td>
+                            {{ certInfor[0].streetAddress }}
                           </td>
                         </tr>
                       </table>
@@ -335,7 +310,7 @@
                             >
                           </div>
                         </div>
-                        <div class="">Chữ ký ở đây</div>
+                        <div class=""><img [src]="this.image" alt="" /></div>
                       </div>
                     </div>
                   </div>
@@ -349,20 +324,29 @@
                   type="button"
                   class="btn btn-primary"
                   (click)="modal.close('Accept click')"
-                  (click)="postSignRequest()"
+                  (click)="getData()"
                   rippleEffect
                 >
                   Ký
                 </button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="postSignRequest()"
+                >post request</button>
               </div>
             </ng-template>
-          </div> -->
+          </div>
           <div class="col-6">
             <button
               type="button"
               class="btn btn-primary btn-block btn-sm"
               (click)="openCauhinh(modalCauhinh)"
-              [disabled]="this.files === undefined || this.files.length === 0"
+              [disabled]="
+                this.files === undefined ||
+                this.files.length === 0 ||
+                this.listCert.length === 0
+              "
             >
               Cấu hình
             </button>
@@ -469,16 +453,18 @@
                     </div>
                   </div>
                 </div>
-                <div class="" formGoupName="display">
+                <div class="">
                   <div class="">
                     <h2>Vị trí vùng chứa chữ ký mặc định</h2>
-                    <div class="d-flex">
+                    <div class="d-flex" formGroupName="config">
                       <table class="">
                         <tr>
                           <th>Trang số</th>
                           <th></th>
                           <th>
                             <input
+                              formControlName="pageIndex"
+                              [(ngModel)]="page"
                               min="0"
                               max="{{ totalPages }}"
                               class="number-input"
@@ -491,6 +477,8 @@
                           <th>X</th>
                           <th>
                             <input
+                              [(ngModel)]="x"
+                              formControlName="top"
                               min="0"
                               max="240"
                               class="number-input"
@@ -504,6 +492,8 @@
                           <th>Y</th>
                           <th>
                             <input
+                              formControlName="left"
+                              [(ngModel)]="y"
                               min="0"
                               max="400"
                               class="number-input"
@@ -517,6 +507,8 @@
                           <th>Chiều dài</th>
                           <th>
                             <input
+                              [(ngModel)]="height"
+                              formControlName="height"
                               min="0"
                               max="400"
                               class="number-input"
@@ -529,6 +521,8 @@
                           <th>Chiều rộng</th>
                           <th>
                             <input
+                              [(ngModel)]="width"
+                              formControlName="width"
                               min="0"
                               max="400"
                               class="number-input"
@@ -560,20 +554,52 @@
                       </div>
                     </div>
                   </div>
-                  <div class="">
+                  <div class="" formGroupName="display">
                     <h2>Mẫu chữ ký</h2>
                     <div class="">
                       <div class="d-flex">
                         <div class="col-4">
+                          <div class="col-6">
+                            <input
+                              #imageInput
+                              type="file"
+                              style="display: none"
+                              (change)="inputImage($event)"
+                            />
+                            <button
+                              type="button"
+                              class="btn btn-primary btn-sm"
+                              (click)="imageInput.click()"
+                            >Thêm
+                              ảnh
+                            </button>
+                          </div>
                           <div class="custom-control custom-checkbox">
                             <p>
                               <input
+                                formControlName="hasPhoto"
+                                type="checkbox"
+                                class="custom-control-input"
+                                id="checkImg"
+                                checked
+                              />
+                              <label class="custom-control-label" for="checkImg">
+                                Ảnh</label
+                              >
+                            </p>
+                          </div>
+                          <div class="custom-control custom-checkbox">
+                            <p>
+                              <input
+                                formControlName="hasLabel"
                                 type="checkbox"
                                 class="custom-control-input"
                                 id="checkTitle"
                                 checked
                               />
-                              <label class="custom-control-label" for="checkTitle"
+                              <label
+                                class="custom-control-label"
+                                for="checkTitle"
                                 >Nhãn</label
                               >
                             </p>
@@ -581,12 +607,15 @@
                           <div class="custom-control custom-checkbox">
                             <p>
                               <input
+                                formControlName="hasEmail"
                                 type="checkbox"
                                 class="custom-control-input"
                                 id="checkEmail"
                                 checked
                               />
-                              <label class="custom-control-label" for="checkEmail"
+                              <label
+                                class="custom-control-label"
+                                for="checkEmail"
                                 >Thư điện tử</label
                               >
                             </p>
@@ -594,12 +623,15 @@
                           <div class="custom-control custom-checkbox">
                             <p>
                               <input
+                                formControlName="hasCommonName"
                                 type="checkbox"
                                 class="custom-control-input"
                                 id="checkName"
                                 checked
                               />
-                              <label class="custom-control-label" for="checkName"
+                              <label
+                                class="custom-control-label"
+                                for="checkName"
                                 >Họ và tên</label
                               >
                             </p>
@@ -607,10 +639,12 @@
                           <div class="custom-control custom-checkbox">
                             <p>
                               <input
+                                formControlName="hasOrganization"
                                 type="checkbox"
                                 class="custom-control-input"
                                 id="checkOU"
                                 checked
+                                
                               />
                               <label class="custom-control-label" for="checkOU">
                                 Tên đơn vị</label
@@ -620,77 +654,49 @@
                           <div class="custom-control custom-checkbox">
                             <p>
                               <input
+                                formControlName="HasSigningTime"
                                 type="checkbox"
                                 class="custom-control-input"
                                 id="checkTime"
+                                
                                 checked
                               />
-                              <label class="custom-control-label" for="checkTime"
+                              <label
+                                class="custom-control-label"
+                                for="checkTime"
                                 >Thời gian ký</label
                               >
                             </p>
                           </div>
                         </div>
                         <div class="col-12">
-                          <div class="demo-inline-spacing">
-                            <div class="custom-control custom-radio">
-                              <input
-                                type="radio"
-                                id="radioAnh"
-                                value="Ảnh"
-                                name="option"
-                                class="custom-control-input"
-                              />
-                              <label class="custom-control-label" for="radioAnh"
-                                >Ảnh</label
-                              >
-                            </div>
-                            <div class="custom-control custom-radio">
-                              <input
-                                type="radio"
-                                id="radioAnhChu"
-                                name="option"
-                                value="Ảnh/Chữ"
-                                class="custom-control-input"
-                              />
-                              <label
-                                class="custom-control-label"
-                                for="radioAnhChu"
-                                >Ảnh/Chữ</label
-                              >
-                            </div>
-                            <div class="custom-control custom-radio">
-                              <input
-                                type="radio"
-                                id="radioChu"
-                                value="Chữ"
-                                name="option"
-                                class="custom-control-input"
-                              />
-                              <label class="custom-control-label" for="radioChu"
-                                >Chữ</label
-                              >
+                          <div class="" slyte="width:200px; height:120px;">
+                            <img [src]="this.image" slyte="width:200px; height:120px;"/>
+                            <div class="" *ngIf="checkedTime">thời gian</div>
+                            <div class="sig-type-text">
+                              <a *ngIf="checkedHeader">Thư điện tử : </a>
+                              <a *ngIf="checkedEmail">emaill@a2.com</a>
+                              <br />
+                              <a *ngIf="checkedHeader">Ký bởi : </a>
+                              <a *ngIf="checkedName"></a>
+                              <br />
+                              <a *ngIf="checkedHeader">Tên đơn vị : </a>
+                              <a *ngIf="checkedOU"></a>
+                              <br />
+                              <a *ngIf="checkedHeader">Thời gian ký : </a>
+                              <a *ngIf="checkedTime"
+                                >
+                              </a>
                             </div>
                           </div>
-                          <div class="" *ngIf="option === 'Ảnh'">Mẫu ảnh ký</div>
-                          <div class="" *ngIf="option === 'Ảnh/Chữ'">
-                            <img
-                              src="http://images1.cafef.vn/Images/Uploaded/DuLieuDownload/logodn/CMG_1.png"
-                              alt=""
-                            />
-                            Mẫu Ảnh chữ ký
-                            <div class="">Nhãn</div>
-                          </div>
-                          <div class="" *ngIf="option === 'Chữ'">Mẫu chữ ký</div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div class="">
-                    Mật khẩu chứng thư số <input type="text" />
-                  </div>
+                  <!-- <div class="">
+                    Mật khẩu chứng thư số <input type="text"/>
+                  </div> -->
                 </div>
-
               </div>
               <div class="modal-footer">
                 <button

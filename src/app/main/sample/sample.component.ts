@@ -68,7 +68,7 @@ export class SampleComponent implements OnInit {
   getPdfSrc() {
     this.loadPdfService.fileList.subscribe(
       (files) => {
-        console.log(files[0]);
+        //console.log(files[0]);
           const reader = new FileReader();
           reader.onload = () => {
             this.pdfSrc = reader.result;
@@ -84,17 +84,19 @@ export class SampleComponent implements OnInit {
   chosenPdf() {
     this.loadPdfService.pdfChosse.subscribe(
       (pdfChosse) => {
-        console.log(pdfChosse);
+        //console.log(pdfChosse);
         //console.log(this.files[pdfChosse])
+        if (typeof FileReader !== "undefined") {
+
           const reader = new FileReader();
           reader.onload = (e:any) => {
             this.pdfSrc = e.target.result;
             this.pdfSource = this.pdfSrc;
           };
-          if(pdfChosse != null){
+          if(this.pdfSrc){
             reader.readAsArrayBuffer(pdfChosse);
           }
-        }
+        }}
     );
   }
 }
